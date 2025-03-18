@@ -15,7 +15,7 @@
       "utils/*": ["src/utils/*"],
       "components/*": ["src/components/*"],
       "hooks/*": ["src/hooks/*"],
-      "views/*": ["src/views/*"],
+      "views/*": ["src/views/*"]
     },
     "types": ["node"],
     "allowJs": true,

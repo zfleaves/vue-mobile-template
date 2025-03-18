@@ -22,6 +22,7 @@ const routes = [
 ]
 
 const router = createRouter({
+  // eslint-disable-next-line node/prefer-global/process
   history: createWebHistory(process.env.VUE_APP_PUBLIC_PATH),
   routes,
 })
