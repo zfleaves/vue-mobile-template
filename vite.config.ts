@@ -15,7 +15,9 @@ import autoprefixer from 'autoprefixer'
 import UnoCSS from 'unocss/vite'
 import { viteVConsole } from 'vite-plugin-vconsole'
 
+import viteImagemin from 'vite-plugin-imagemin'
 import viteCompression from 'vite-plugin-compression'
+import { createHtmlPlugin } from 'vite-plugin-html'
 
 export default ({ command, mode }: ConfigEnv): UserConfig => {
   // eslint-disable-next-line node/prefer-global/process
@@ -70,6 +72,11 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       },
     },
     plugins: [
+      viteImagemin({
+        gifsicle: { optimizationLevel: 3 },
+        mozjpeg: { quality: 80 },
+        pngquant: { quality: [0.8, 0.9] },
+      }),
       viteCompression({
         verbose: true,
         disable: false,
@@ -77,21 +84,32 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
         algorithm: 'gzip',
         ext: '.gz',
       }),
+      createHtmlPlugin({
+        minify: {
+          collapseWhitespace: true,
+          removeComments: true,
+          minifyCSS: true,
+          minifyJS: true,
+          // 其他选项参考 html-minifier-terser
+        },
+      }),
       vue(),
       vueJsx(),
-      visualizer(),
+      visualizer({
+        open: true,
+        filename: 'stats.html', // 输出文件名[2,6](@ref)
+      }),
       UnoCSS(),
 
       legacy({
         targets: ['defaults', 'not IE 11'],
       }),
-
       Components({
-        extensions: ['vue'],
-        include: [/\.vue$/],
-        dts: 'components.d.ts',
+        dts: true,
         resolvers: [VantResolver()],
+        types: [],
       }),
+
       AutoImport({
         include: [
           /\.[tj]sx?$/,
@@ -104,7 +122,6 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
           'vitest',
         ],
         dts: true,
-        resolvers: [VantResolver()],
       }),
 
       viteVConsole({
@@ -118,8 +135,30 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       }),
     ],
     build: {
-      cssCodeSplit: false,
-      chunkSizeWarningLimit: 2048,
+      outDir: 'dist',
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
+      rollupOptions: {
+        output: {
+          // 自动分割第三方库和公共模块
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('vue-router'))
+                return 'vendor-router'
+              return 'vendor'
+            }
+          },
+          // Static resource classification and packaging
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+        },
+      },
     },
   }
 }
