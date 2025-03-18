@@ -18,6 +18,7 @@ import { viteVConsole } from 'vite-plugin-vconsole'
 import viteImagemin from 'vite-plugin-imagemin'
 import viteCompression from 'vite-plugin-compression'
 import { createHtmlPlugin } from 'vite-plugin-html'
+import importToCDN from 'vite-plugin-cdn-import'
 
 export default ({ command, mode }: ConfigEnv): UserConfig => {
   // eslint-disable-next-line node/prefer-global/process
@@ -96,7 +97,7 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       vue(),
       vueJsx(),
       visualizer({
-        open: true,
+        open: false,
         filename: 'stats.html', // 输出文件名[2,6](@ref)
       }),
       UnoCSS(),
@@ -133,6 +134,13 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
           theme: 'light',
         },
       }),
+      importToCDN({
+        modules: [
+          { name: 'axios', var: 'axios', path: 'https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' },
+          // { name: 'element-plus', var: 'ElementPlus', path: 'https://cdn.jsdelivr.net/npm/element-plus/dist/index.full.min.js' },
+          { name: 'echarts', var: 'echarts', path: 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js' },
+        ],
+      }),
     ],
     build: {
       outDir: 'dist',
@@ -148,15 +156,17 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
           // 自动分割第三方库和公共模块
           manualChunks(id) {
             if (id.includes('node_modules')) {
+              if (id.includes('store'))
+                return 'vendor-store'
               if (id.includes('vue-router'))
                 return 'vendor-router'
               return 'vendor'
             }
           },
           // Static resource classification and packaging
-          chunkFileNames: 'assets/js/[name]-[hash].js',
-          entryFileNames: 'assets/js/[name]-[hash].js',
-          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+          // chunkFileNames: 'assets/js/[name]-[hash].js',
+          // entryFileNames: 'assets/js/[name]-[hash].js',
+          // assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
         },
       },
     },
