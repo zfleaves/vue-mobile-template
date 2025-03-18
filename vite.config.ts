@@ -15,8 +15,6 @@ import autoprefixer from 'autoprefixer'
 import UnoCSS from 'unocss/vite'
 import { viteVConsole } from 'vite-plugin-vconsole'
 
-// import mock from './build/mock/createMockServer'
-
 export default ({ command, mode }: ConfigEnv): UserConfig => {
   // eslint-disable-next-line node/prefer-global/process
   const root = process.cwd()
